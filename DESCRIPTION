@@ -15,4 +15,5 @@ Config/testthat/edition: 3
 Language: en-US
 Imports: 
     flexsurv,
+    ggplot2,
     survival
