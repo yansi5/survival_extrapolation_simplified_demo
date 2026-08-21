@@ -1,8 +1,8 @@
 ---
-title: "Building an R Package for Parametric Survival Extrapolation"
-subtitle: "Advanced R Course Project"
-author: "Yancy S. Wu"
-group: "Decision Analysis in R for Technologies in Health (DARTH)"
+title: "<span style='font-size: 0.75em;'>Building an R Package for Parametric Survival Model</span>"
+subtitle: "<span style='font-size: 0.85em;'>A simple version ('survextrasimp') for the Advanced R Course at Aarhus</span>"
+author: "Yancy S. Wu, University of Oslo"
+institute: "Decision Analysis in R for Technologies in Health (DARTH)"
 format:
   revealjs:
     embed-resources: true
@@ -20,7 +20,7 @@ devtools::load_all()
 
 Parametric survival extrapolation is commonly used when observed survival data do not cover the full time horizon required for an analysis, e.g., cost-effectiveness analysis.
 
-In practice, the same analytical steps are often repeated:
+**Core steps:**
 
 -   Fit alternative parametric survival distributions
 -   Compare statistical model fit
@@ -31,23 +31,24 @@ In practice, the same analytical steps are often repeated:
 
 ## Research context
 
-This project was developed in the context of my work with **Decision Analysis in R for Technologies in Health (DARTH)**. **DARTH GitHub:** <https://github.com/DARTH-git>
+This project was developed within **Decision Analysis in R for Technologies in Health (DARTH)**. \
+**Github:** <https://github.com/DARTH-git>
 
 DARTH promotes transparent and reproducible decision-analytic modelling in R, including:
 
 -   reusable code
--   transparent implementation
--   formal testing
--   documentation
+-   formal validation
+-   transparent documentation
 -   version control with Git and GitHub
+-   tutorial paper for implementation
 
 ## Example R packages and models
 
-![](images/darth-group.png){width="72%" fig-align="center"}
+![](images/darth-group.png){fig-align="center" width="72%"}
 
 ::: {style="font-size: 0.60em; line-height: 1.35;"}
 **Examples:**\
-**OpenTree** — Hawre Jalal, Harvard Medical School\
+**Interactive Decision Tree Model (OpenTree)** — Hawre Jalal, Harvard Medical School\
 **Cohort State-Transition Markov Model** — Fernando Alarid-Escudero, Stanford Medical School\
 **Microsimulation Model** — Eline Krijkamp, Erasmus University\
 **dampack** and **darthpack** — Fernando Alarid-Escudero, Stanford Medical School
@@ -56,7 +57,7 @@ DARTH promotes transparent and reproducible decision-analytic modelling in R, in
 ## What the package does
 
 | Function                | Purpose                                          |
-|------------------------------------|------------------------------------|
+|-------------------------|-----------------------------------------------|
 | `fit_survival_models()` | Fit parametric survival models by treatment arm  |
 | `model_diagnostics()`   | Compare models using AIC and BIC                 |
 | `predict_survival()`    | Predict extrapolated survival probabilities      |
@@ -67,7 +68,7 @@ DARTH promotes transparent and reproducible decision-analytic modelling in R, in
 ::: {style="font-size: 0.68em; line-height: 1.15;"}
 The package was developed iteratively using the standard R package workflow:
 
-**Write function**\
+**Write function (pre-developed & validated)**\
 ↓\
 **Informally test the function**\
 ↓\
@@ -84,7 +85,7 @@ The package was developed iteratively using the standard R package workflow:
 
 ## Example data
 
-For demonstration, I use the `lung` dataset from the `survival` package.
+Use the `lung` dataset from the `survival` package.
 
 ```{r}
 lung_data <- data.frame(
@@ -96,13 +97,11 @@ lung_data <- data.frame(
 head(lung_data)
 ```
 
-The package expects three variables:
+The package takes three variables:
 
 -   `time`: observed survival time
 -   `status`: 0 = censored, 1 = event
 -   `treat`: treatment/group identifier
-
-For this demonstration, the two groups are labelled as hypothetical treatment arms.
 
 ## Fitting and comparing survival models
 
@@ -136,31 +135,23 @@ plot_survival(
 )
 ```
 
-The black Kaplan-Meier curves show the observed survival data.
+`predict_survival()` predicts and extends parametric curves beyond the observed follow-up period.
 
-The parametric curves extend survival beyond the observed follow-up period.
+`plot_survival()` plots observed Kaplan-Meier (black) and parametric survival curves (colored).
 
 ## Formal testing
 
 Each function has a corresponding unit test using `testthat`.
 
+![](images/test-functions.png){fig-align="center" width="100%"}
+
+## Devtools testing
+
+Functions were documented using `devtools::test()`.
+
 ```{r}
-
-test_that("model_diagnostics returns AIC and BIC", {
-
-  diagnostics <- model_diagnostics(fits)
-
-  expect_equal(
-    names(diagnostics),
-    c("arm", "distribution", "AIC", "BIC")
-  )
-
-  expect_true(all(is.finite(diagnostics$AIC)))
-  expect_true(all(is.finite(diagnostics$BIC)))
-})
+devtools::test()
 ```
-
-Formal testing helps ensure that future changes do not unexpectedly break existing functionality.
 
 ## Documentation and package checking
 
@@ -174,7 +165,7 @@ devtools::document()
 
 This generates the help files and updates the package `NAMESPACE`.
 
-The complete package was then checked using:
+The complete package was then checked using `devtools::test()`.
 
 ```{r}
 #| eval: false
@@ -187,6 +178,10 @@ The package passed with:
 -   0 errors
 -   0 warnings
 -   1 environment-related note: unable to verify current time
+
+## Final R package
+
+![](images/final-package.png){fig-align="center"}
 
 ## Next steps
 
