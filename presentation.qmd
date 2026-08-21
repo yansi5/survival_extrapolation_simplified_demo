@@ -1,0 +1,203 @@
+---
+title: "Building an R Package for Parametric Survival Extrapolation"
+subtitle: "Advanced R Course Project"
+author: "Yancy S. Wu"
+group: "Decision Analysis in R for Technologies in Health (DARTH)"
+format:
+  revealjs:
+    embed-resources: true
+    slide-number: true
+editor: visual
+---
+
+```{r}
+#| include: false
+
+devtools::load_all()
+```
+
+## Motivation
+
+Parametric survival extrapolation is commonly used when observed survival data do not cover the full time horizon required for an analysis, e.g., cost-effectiveness analysis.
+
+In practice, the same analytical steps are often repeated:
+
+-   Fit alternative parametric survival distributions
+-   Compare statistical model fit
+-   Predict survival beyond the observed follow-up
+-   Visualize observed and extrapolated survival curves
+
+**Aim:** Turn our survival extrapolation workflow into a simple, reusable, open-sourced R package.
+
+## Research context
+
+This project was developed in the context of my work with **Decision Analysis in R for Technologies in Health (DARTH)**. **DARTH GitHub:** <https://github.com/DARTH-git>
+
+DARTH promotes transparent and reproducible decision-analytic modelling in R, including:
+
+-   reusable code
+-   transparent implementation
+-   formal testing
+-   documentation
+-   version control with Git and GitHub
+
+## Example R packages and models
+
+![](images/darth-group.png){width="72%" fig-align="center"}
+
+::: {style="font-size: 0.60em; line-height: 1.35;"}
+**Examples:**\
+**OpenTree** — Hawre Jalal, Harvard Medical School\
+**Cohort State-Transition Markov Model** — Fernando Alarid-Escudero, Stanford Medical School\
+**Microsimulation Model** — Eline Krijkamp, Erasmus University\
+**dampack** and **darthpack** — Fernando Alarid-Escudero, Stanford Medical School
+:::
+
+## What the package does
+
+| Function                | Purpose                                          |
+|------------------------------------|------------------------------------|
+| `fit_survival_models()` | Fit parametric survival models by treatment arm  |
+| `model_diagnostics()`   | Compare models using AIC and BIC                 |
+| `predict_survival()`    | Predict extrapolated survival probabilities      |
+| `plot_survival()`       | Plot Kaplan-Meier and parametric survival curves |
+
+## Package development workflow
+
+::: {style="font-size: 0.68em; line-height: 1.15;"}
+The package was developed iteratively using the standard R package workflow:
+
+**Write function**\
+↓\
+**Informally test the function**\
+↓\
+**Create formal tests with `testthat`**\
+↓\
+**Document with `roxygen2`**\
+↓\
+**Run `devtools::document()`**\
+↓\
+**Run `devtools::check()`**\
+↓\
+**Commit, branch, merge, and push with Git/GitHub**
+:::
+
+## Example data
+
+For demonstration, I use the `lung` dataset from the `survival` package.
+
+```{r}
+lung_data <- data.frame(
+  time = survival::lung$time,
+  status = survival::lung$status - 1,
+  treat = survival::lung$sex
+)
+
+head(lung_data)
+```
+
+The package expects three variables:
+
+-   `time`: observed survival time
+-   `status`: 0 = censored, 1 = event
+-   `treat`: treatment/group identifier
+
+For this demonstration, the two groups are labelled as hypothetical treatment arms.
+
+## Fitting and comparing survival models
+
+```{r}
+fits <- fit_survival_models(
+  data = lung_data,
+  dists_to_fit = c("weibull", "lnorm"),
+  arm_names = c(
+    "1" = "Treatment 1",
+    "2" = "Treatment 2"
+  )
+)
+
+model_diagnostics(fits)
+```
+
+`fit_survival_models()` fits each requested parametric distribution separately for each treatment arm.
+
+`model_diagnostics()` compares the fitted models using AIC and BIC.
+
+## Survival extrapolation
+
+```{r}
+#| fig-width: 9
+#| fig-height: 5
+
+plot_survival(
+  fits,
+  data = lung_data,
+  times = seq(0, 1500, by = 10)
+)
+```
+
+The black Kaplan-Meier curves show the observed survival data.
+
+The parametric curves extend survival beyond the observed follow-up period.
+
+## Formal testing
+
+Each function has a corresponding unit test using `testthat`.
+
+```{r}
+
+test_that("model_diagnostics returns AIC and BIC", {
+
+  diagnostics <- model_diagnostics(fits)
+
+  expect_equal(
+    names(diagnostics),
+    c("arm", "distribution", "AIC", "BIC")
+  )
+
+  expect_true(all(is.finite(diagnostics$AIC)))
+  expect_true(all(is.finite(diagnostics$BIC)))
+})
+```
+
+Formal testing helps ensure that future changes do not unexpectedly break existing functionality.
+
+## Documentation and package checking
+
+Functions were documented using `roxygen2`.
+
+```{r}
+#| eval: false
+
+devtools::document()
+```
+
+This generates the help files and updates the package `NAMESPACE`.
+
+The complete package was then checked using:
+
+```{r}
+#| eval: false
+
+devtools::check()
+```
+
+The package passed with:
+
+-   0 errors
+-   0 warnings
+-   1 environment-related note: unable to verify current time
+
+## Next steps
+
+The current version deliberately focuses on a simple core workflow for this course
+
+However, our R packge includes:
+
+-   additional survival-model diagnostics (e.g., HR)
+-   flexible parametric and spline models
+-   background mortality adjustment
+-   probabilistic analysis
+-   more customizable plotting
+
+**DARTH GitHub:** <https://github.com/DARTH-git>
